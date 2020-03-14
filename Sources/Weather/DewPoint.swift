@@ -1,13 +1,8 @@
 import Foundation
 
 public struct DewPoint {
-    public enum Feel: String, CaseIterable, CustomStringConvertible {
+    public enum Feel: String, CaseIterable {
         case dry, comfortable, humid
-        
-        // MARK: CustomStringConvertible
-        public var description: String {
-            return rawValue
-        }
     }
     
     public let temperature: Measurement<UnitTemperature>
@@ -29,7 +24,6 @@ extension DewPoint: Decodable {
     public init(from decoder: Decoder) throws {
         let units: Units = try decoder.units()
         let container: SingleValueDecodingContainer = try decoder.singleValueContainer()
-        let value: Double = try container.decode(Double.self)
-        self.init(temperature: Measurement(value: value, unit: units.temperature))
+        temperature = Measurement(value: try container.decode(Double.self), unit: units.temperature)
     }
 }

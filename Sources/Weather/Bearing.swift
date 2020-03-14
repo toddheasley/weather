@@ -20,8 +20,7 @@ extension Bearing: Decodable {
     // MARK: Decodable
     public init(from decoder: Decoder) throws {
         let container: SingleValueDecodingContainer = try decoder.singleValueContainer()
-        let angle: Double = try container.decode(Double.self)
-        guard let bearing: Bearing = Bearing(angle: angle) else {
+        guard let bearing: Bearing = Bearing(angle: try container.decode(Double.self)) else {
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "")
         }
         self = bearing

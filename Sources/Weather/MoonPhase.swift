@@ -77,7 +77,6 @@ extension MoonPhase: Decodable {
     // MARK: Decodable
     public init(from decoder: Decoder) throws {
         let container: SingleValueDecodingContainer = try decoder.singleValueContainer()
-        let value: Double = try container.decode(Double.self)
-        self.init(value: value)
+        self.init(value: try container.decode(Double.self))
     }
 }

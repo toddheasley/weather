@@ -16,7 +16,7 @@ extension Wind: Decodable {
         bearing = try container.decode(Bearing.self, forKey: .windBearing)
         speed = Measurement(value: try container.decode(Double.self, forKey: .windSpeed), unit: units.speed)
         gust = Measurement(value: try container.decode(Double.self, forKey: .windGust), unit: units.speed)
-        date = try container.decodeIfPresent(Date.self, forKey: .windGustTime)
+        date = try? container.decode(Date.self, forKey: .windGustTime)
     }
     
     private enum Key: CodingKey {

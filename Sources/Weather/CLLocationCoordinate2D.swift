@@ -10,9 +10,7 @@ extension CLLocationCoordinate2D: Decodable {
     // MARK: Decodable
     public init(from decoder: Decoder) throws {
         let container: KeyedDecodingContainer<Key> = try decoder.container(keyedBy: Key.self)
-        let latitude: Double = try container.decode(Double.self, forKey: .latitude)
-        let longitude: Double = try container.decode(Double.self, forKey: .longitude)
-        self.init(latitude: latitude, longitude: longitude)
+        self.init(latitude: try container.decode(Double.self, forKey: .latitude), longitude: try container.decode(Double.self, forKey: .longitude))
     }
     
     private enum Key: CodingKey {

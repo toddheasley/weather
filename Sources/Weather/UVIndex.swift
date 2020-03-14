@@ -5,13 +5,8 @@ public struct UVIndex {
         case green, yellow, orange, red, violet
     }
     
-    public enum Risk: String, CaseIterable, CustomStringConvertible {
+    public enum Risk: String, CaseIterable {
         case low, moderate, high, veryHigh = "very high", extreme
-        
-        // MARK: CustomStringConvertible
-        public var description: String {
-            return "\(rawValue)"
-        }
     }
     
     public let value: Int
@@ -79,9 +74,8 @@ extension UVIndex: Decodable {
     // MARK: Decodable
     public init(from decoder: Decoder) throws {
         let container: KeyedDecodingContainer<Key> = try decoder.container(keyedBy: Key.self)
-        let value: Int = try container.decode(Int.self, forKey: .uvIndex)
-        let date: Date? = try container.decodeIfPresent(Date.self, forKey: .uvIndexTime)
-        self.init(value: value, date: date)
+        self.init(value: try container.decode(Int.self, forKey: .uvIndex), date: try? container.decode(Date.self, forKey: .uvIndexTime))
+
     }
     
     private enum Key: CodingKey {
