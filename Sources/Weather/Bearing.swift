@@ -15,6 +15,14 @@ public enum Bearing: String, CaseIterable {
     }
 }
 
+extension Bearing: CustomStringConvertible {
+    
+    // MARK: CustomStringConvertible
+    public var description: String {
+        return rawValue
+    }
+}
+
 extension Bearing: Decodable {
     
     // MARK: Decodable

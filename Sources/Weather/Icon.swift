@@ -12,3 +12,11 @@ public enum Icon: String, CaseIterable, Decodable {
         }
     }
 }
+
+extension Icon: CustomStringConvertible {
+    
+    // MARK: CustomStringConvertible
+    public var description: String {
+        return rawValue.replacingOccurrences(of: "-", with: " ")
+    }
+}

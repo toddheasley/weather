@@ -1,7 +1,7 @@
 import Foundation
 
 extension URLSession {
-    public func forecast(with request: Forecast.Request, completion: @escaping (Forecast?, Forecast.Error?) -> Void) {
+    public func forecast(with request: Forecast.Request, dispatch queue: DispatchQueue = .main, completion: @escaping (Forecast?, Forecast.Error?) -> Void) {
         do {
             dataTask(with: URLRequest(url: try request.url(), gzip: true)) { data, response, error in
                 do {
@@ -16,16 +16,22 @@ extension URLSession {
                         guard !(forecast.flags?.isUnavailable ?? false) else {
                             throw Forecast.Error.forecastNotAvailable
                         }
-                        completion(forecast, nil)
+                        queue.async {
+                            completion(forecast, nil)
+                        }
                     default:
                         throw error ?? Forecast.Error.locationNotFound
                     }
                 } catch {
-                    completion(nil, (error as? Forecast.Error) ?? .networkRequestFailed)
+                    queue.async {
+                        completion(nil, (error as? Forecast.Error) ?? .networkRequestFailed)
+                    }
                 }
             }.resume()
         } catch {
-            completion(nil, (error as? Forecast.Error) ?? .urlEncodingFailed)
+            queue.asyncAfter(deadline: .now() + 0.1) {
+                completion(nil, (error as? Forecast.Error) ?? .urlEncodingFailed)
+            }
         }
     }
 }

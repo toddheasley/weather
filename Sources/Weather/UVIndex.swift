@@ -5,8 +5,13 @@ public struct UVIndex {
         case green, yellow, orange, red, violet
     }
     
-    public enum Risk: String, CaseIterable {
+    public enum Risk: String, CaseIterable, CustomStringConvertible {
         case low, moderate, high, veryHigh = "very high", extreme
+        
+        // MARK: CustomStringConvertible
+        public var description: String {
+            return rawValue
+        }
     }
     
     public let value: Int
