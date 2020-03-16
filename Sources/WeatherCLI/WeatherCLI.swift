@@ -1,4 +1,6 @@
 import Cocoa
+import Combine
+import CoreLocation
 import ArgumentParser
 import Weather
 
@@ -91,18 +93,87 @@ struct WeatherCLI: ParsableCommand {
     }
     
     struct Location: ParsableCommand {
-        @Argument(help: "Set address or latitude/longitude.")
-        var location: String?
+        @Argument(help: "Search for location.")
+        var address: String?
         
-        @Flag(name: .shortAndLong, help: "Use current location: 0.0,0.0")
+        @Option(name: .shortAndLong, help: "Set comma-separated latitude and longitude.")
+        var coordinate: CLLocationCoordinate2D?
+        
+        @Flag(name: .shortAndLong, help: "Use current location.")
         var auto: Bool
+        
+        @Flag(name: [.customShort("0"), .long], help: .hidden)
+        var null: Bool
         
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Set geographic location.")
         
         func run() throws {
-            
+            let runLoop: CFRunLoop = CFRunLoopGetCurrent()
+            var place: CLPlacemark?
+            if auto {
+                UserDefaults.standard.coordinate = nil
+                Self.subscriber = CLLocationManager.publisher
+                    .sink(receiveCompletion: { completion in
+                        switch completion {
+                        case .failure(let error):
+                            CFRunLoopStop(runLoop)
+                            print(error)
+                        case .finished:
+                            break
+                        }
+                    }, receiveValue: { location in
+                        CFRunLoopStop(runLoop)
+                        UserDefaults.standard.coordinate = location.coordinate
+                    })
+                CFRunLoopRun()
+            } else if let coordinate: CLLocationCoordinate2D = coordinate {
+                UserDefaults.standard.coordinate = coordinate
+            } else if let address: String = address, !address.isEmpty {
+                Self.subscriber = CLGeocoder.publisher(address: address)
+                    .sink(receiveCompletion: { completion in
+                        switch completion {
+                        case .failure(let error):
+                            CFRunLoopStop(runLoop)
+                            print(error)
+                        case .finished:
+                            break
+                        }
+                    }, receiveValue: { placemark in
+                        CFRunLoopStop(runLoop)
+                        UserDefaults.standard.coordinate = placemark.location?.coordinate
+                        place = placemark
+                    })
+                CFRunLoopRun()
+            }
+            guard let coordinate: CLLocationCoordinate2D = UserDefaults.standard.coordinate else {
+                print("COORDINATE: <null>")
+                return
+            }
+            if place == nil {
+                Self.subscriber = CLGeocoder.publisher(coordinate: coordinate)
+                    .sink(receiveCompletion: { completion in
+                        switch completion {
+                        case .failure(let error):
+                            CFRunLoopStop(runLoop)
+                            print(error)
+                        case .finished:
+                            break
+                        }
+                    }, receiveValue: { placemark in
+                        CFRunLoopStop(runLoop)
+                        place = placemark
+                    })
+                CFRunLoopRun()
+            }
+            var string: String = ""
+            string.append(string: "COORDINATE: \(coordinate)")
+            string.append(string: "")
+            string.append(string: "NAME: \(place?.name ?? "<null>")")
+            print(string)
         }
+        
+        private static var subscriber: AnyCancellable?
     }
     
     struct Forecast: ParsableCommand {
@@ -123,21 +194,24 @@ struct WeatherCLI: ParsableCommand {
             Forecast.Request.key = URLCredentialStorage.shared.key
             Forecast.Request.language = UserDefaults.standard.language ?? .auto
             Forecast.Request.units = UserDefaults.standard.units ?? .auto
-            
-            
-            URLSession.shared.forecast(with: Forecast.Request(coordinate: .null)) { forecast, error in
-                CFRunLoopStop(runLoop)
-                
-                guard let forecast: Forecast = forecast else {
-                    print(error!)
-                    return
-                }
-                print(forecast.current?.summary ?? "nil")
-            }
+            Self.subscriber = Forecast.publisher(request: Forecast.Request(coordinate: .null))
+                .sink(receiveCompletion: { completion in
+                    switch completion {
+                    case .failure(let error):
+                        CFRunLoopStop(runLoop)
+                        print(error)
+                    case .finished:
+                        break
+                    }
+                }, receiveValue: { forecast in
+                    CFRunLoopStop(runLoop)
+                    print(forecast.current?.summary ?? "nil")
+                })
             CFRunLoopRun()
         }
         
         private typealias Forecast = Weather.Forecast
+        private static var subscriber: AnyCancellable?
     }
     
     struct About: ParsableCommand {
@@ -179,7 +253,4 @@ struct WeatherCLI: ParsableCommand {
 // Discussion
 
 // String functions
-// Forecast arguments
-
-// [ ] ./weather-cli location "Peaks Island, ME" || 0.0,0.0 || [--auto, -a] || [--null, -0]
-
+// Forecast block, extend arguments

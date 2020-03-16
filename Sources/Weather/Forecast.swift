@@ -3,7 +3,7 @@ import CoreLocation
 
 public struct Forecast {
     public enum Error: Swift.Error {
-        case forecastNotAvailable, locationNotAvailable, locationNotFound, keyNotFound, keyNotRecognized, urlEncodingFailed, networkRequestFailed, dataCorrupted
+        case forecastNotAvailable, location(CLError), keyNotFound, keyNotRecognized, urlEncodingFailed, networkRequestFailed, dataCorrupted
     }
     
     public struct Request {
@@ -99,6 +99,10 @@ public struct Forecast {
     }
     
     public static let attribution: (url: URL, description: String) = (URL(string: "https://darksky.net/poweredby")!, "Powered by Dark Sky")
+    
+    public static func request(_ request: Request, completion: @escaping (Self?, Error?) -> Void) {
+        URLSession.shared.forecast(with: request, completion: completion)
+    }
     
     public let units: Units
     public let coordinate: CLLocationCoordinate2D

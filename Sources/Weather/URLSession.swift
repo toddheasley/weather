@@ -1,7 +1,7 @@
 import Foundation
 
 extension URLSession {
-    public func forecast(with request: Forecast.Request, dispatch queue: DispatchQueue = .main, completion: @escaping (Forecast?, Forecast.Error?) -> Void) {
+    func forecast(with request: Forecast.Request, dispatch queue: DispatchQueue = .main, completion: @escaping (Forecast?, Forecast.Error?) -> Void) {
         do {
             dataTask(with: URLRequest(url: try request.url(), gzip: true)) { data, response, error in
                 do {
@@ -20,7 +20,7 @@ extension URLSession {
                             completion(forecast, nil)
                         }
                     default:
-                        throw error ?? Forecast.Error.locationNotFound
+                        throw error ?? Forecast.Error.networkRequestFailed
                     }
                 } catch {
                     queue.async {

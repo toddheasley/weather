@@ -1,6 +1,6 @@
 import Foundation
-import ArgumentParser
 import CoreLocation
+import ArgumentParser
 
 extension CLLocationCoordinate2D: ExpressibleByArgument {
     
@@ -17,5 +17,20 @@ extension CLLocationCoordinate2D: ExpressibleByArgument {
             return nil
         }
         self = coordinate
+    }
+}
+
+extension CLLocationCoordinate2D: CustomStringConvertible {
+    
+    // MARK: CustomStringConvertible
+    public var description: String {
+        return "\(latitude.normalized),\(longitude.normalized)"
+    }
+}
+
+extension CLLocationDegrees {
+    fileprivate var normalized: String {
+        let precision: Int = "\(self)".components(separatedBy: ".").last?.count ?? 0
+        return String(format: "%.\(min(max(precision, 1), 7))f", self)
     }
 }

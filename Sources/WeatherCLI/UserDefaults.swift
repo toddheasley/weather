@@ -21,12 +21,12 @@ extension UserDefaults {
         }
     }
     
-    var location: CLLocationCoordinate2D? {
+    var coordinate: CLLocationCoordinate2D? {
         set {
-            
+            set(newValue?.description, forKey: "coordinate")
         }
         get {
-            return nil
+            return CLLocationCoordinate2D(argument: string(forKey: "coordinate") ?? "")
         }
     }
 }
