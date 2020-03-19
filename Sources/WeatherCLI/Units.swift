@@ -9,20 +9,3 @@ extension Units: ExpressibleByArgument {
         self.init(rawValue: argument)
     }
 }
-
-extension Units: CustomStringConvertible {
-    
-    // MARK: CustomStringConvertible
-    public var description: String {
-        switch self {
-        case .us:
-            return "United States"
-        case .ca:
-            return "Canada"
-        case .uk2:
-            return "United Kingdom"
-        case .si:
-            return "International"
-        }
-    }
-}

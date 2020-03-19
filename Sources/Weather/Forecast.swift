@@ -3,7 +3,7 @@ import CoreLocation
 
 public struct Forecast {
     public enum Error: Swift.Error {
-        case forecastNotAvailable, location(CLError), keyNotFound, keyNotRecognized, urlEncodingFailed, networkRequestFailed, dataCorrupted
+        case forecastNotAvailable, location(CLError?), keyNotFound, keyNotRecognized, urlEncodingFailed, networkRequestFailed, dataCorrupted
     }
     
     public struct Request {

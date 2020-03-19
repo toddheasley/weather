@@ -1,22 +1,6 @@
 import Foundation
-import Combine
 import ArgumentParser
 import Weather
-
-extension Forecast {
-    public static func publisher(request: Request) -> AnyPublisher<Self, Error> {
-        return Future<Self, Error> { handler in
-            Self.request(request) { forecast, error in
-                guard let forecast: Self = forecast else {
-                    handler(.failure(error ?? .forecastNotAvailable))
-                    return
-                }
-                handler(.success(forecast))
-            }
-        }
-        .eraseToAnyPublisher()
-    }
-}
 
 extension Forecast.Error: CustomStringConvertible {
     
@@ -26,7 +10,14 @@ extension Forecast.Error: CustomStringConvertible {
         case .forecastNotAvailable:
             return "Forecast not available"
         case .location(let error):
-            return "Location not available: \(error.code)"
+            switch error?.code {
+            case .denied:
+                return "Location denied"
+            case .network:
+                return Self.networkRequestFailed.description
+            default:
+                return "Location not found"
+            }
         case .keyNotFound:
             return "Key not found"
         case .keyNotRecognized:

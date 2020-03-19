@@ -1,36 +1,47 @@
 import Foundation
 import CoreLocation
-import Combine
 
 extension CLGeocoder {
-    public static func publisher(coordinate: CLLocationCoordinate2D) -> AnyPublisher<CLPlacemark, CLError> {
-        let geocoder: CLGeocoder = CLGeocoder()
-        return Future<CLPlacemark, CLError> { handler in
-                geocoder.reverseGeocodeLocation(CLLocation(coordinate: coordinate)) { places, error in
-                    guard let place: CLPlacemark = places?.first else {
-                        handler(.failure((error as? CLError) ?? CLError(.geocodeFoundNoResult)))
-                        return
+    typealias Location = (coordinate: CLLocationCoordinate2D, description: String?)
+    
+    static func geocode(coordinate: CLLocationCoordinate2D? = nil, completion: @escaping (Location?, CLError?) -> Void) {
+        guard let coordinate: CLLocationCoordinate2D = coordinate else {
+            CLLocationManager.locate { location, error in
+                guard let coordinate: CLLocationCoordinate2D = location?.coordinate else {
+                    DispatchQueue.main.async {
+                        completion(nil, error ?? CLError(.locationUnknown))
                     }
-                    handler(.success(place))
+                    return
                 }
+                geocode(coordinate: coordinate, completion: completion)
             }
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
+            return
+        }
+        geocoder.reverseGeocodeLocation(CLLocation(coordinate: coordinate)) { placemarks, error in
+            handle(coordinate: coordinate, placemarks: placemarks, error: error, completion: completion)
+        }
     }
     
-    public static func publisher(address: String) -> AnyPublisher<CLPlacemark, CLError> {
-        let geocoder: CLGeocoder = CLGeocoder()
-        return Future<CLPlacemark, CLError> { handler in
-                geocoder.geocodeAddressString(address) { places, error in
-                    guard let place: CLPlacemark = places?.first else {
-                        handler(.failure((error as? CLError) ?? CLError(.geocodeFoundNoResult)))
-                        return
-                    }
-                    handler(.success(place))
-                }
-            }
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
+    static func geocode(address: String, completion: @escaping (Location?, CLError?) -> Void) {
+        geocoder.geocodeAddressString(address){ placemarks, error in
+            handle(coordinate: nil, placemarks: placemarks, error: error, completion: completion)
+        }
+    }
+    
+    private static let geocoder: CLGeocoder = CLGeocoder()
+    
+    private static func handle(coordinate: CLLocationCoordinate2D?, placemarks: [CLPlacemark]?, error: Error?, completion: (Location?, CLError?) -> Void) {
+        guard let coordinate: CLLocationCoordinate2D = coordinate ?? placemarks?.first?.location?.coordinate else {
+            completion(nil, (error as? CLError) ?? CLError(.geocodeFoundNoResult))
+            return
+        }
+        completion((coordinate, placemarks?.first?.address), nil)
+    }
+}
+
+extension CLPlacemark {
+    fileprivate var address: String {
+        return description.components(separatedBy: " @")[0].components(separatedBy: ", ").dropFirst().joined(separator: ", ")
     }
 }
 

@@ -6,6 +6,14 @@ public enum Units: String, CaseIterable, Decodable {
     public static let auto: Units = .us
 }
 
+extension Units: CustomStringConvertible {
+    
+    // MARK: CustomStringConvertible
+    public var description: String {
+        return "Description, desc, de/s"
+    }
+}
+
 extension Units {
     public var accumulation: UnitLength {
         switch self {

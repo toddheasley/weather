@@ -3,6 +3,15 @@ import CoreLocation
 import Weather
 
 extension UserDefaults {
+    var coordinate: CLLocationCoordinate2D? {
+        set {
+            set(newValue?.description, forKey: "coordinate")
+        }
+        get {
+            return CLLocationCoordinate2D(argument: string(forKey: "coordinate") ?? "")
+        }
+    }
+    
     var language: Weather.Language? {
         set {
             set(newValue?.rawValue, forKey: "language")
@@ -18,15 +27,6 @@ extension UserDefaults {
         }
         get {
             return Weather.Units(rawValue: string(forKey: "units") ?? "")
-        }
-    }
-    
-    var coordinate: CLLocationCoordinate2D? {
-        set {
-            set(newValue?.description, forKey: "coordinate")
-        }
-        get {
-            return CLLocationCoordinate2D(argument: string(forKey: "coordinate") ?? "")
         }
     }
 }

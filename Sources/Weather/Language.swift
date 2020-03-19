@@ -5,3 +5,11 @@ public enum Language: String, CaseIterable, Decodable {
     
     public static let auto: Language = .en
 }
+
+extension Language: CustomStringConvertible {
+    
+    // MARK: CustomStringConvertible
+    public var description: String {
+        return "Language name"
+    }
+}
