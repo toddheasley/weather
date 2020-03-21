@@ -10,6 +10,6 @@ extension Language: CustomStringConvertible {
     
     // MARK: CustomStringConvertible
     public var description: String {
-        return "Language name"
+        return Locale.current.localizedString(forLanguageCode: rawValue) ?? ""
     }
 }

@@ -8,8 +8,11 @@ struct WeatherCLI: ParsableCommand {
         @Argument(help: "Set Dark Sky API key.")
         var key: String?
         
-        @Flag(name: [.customShort("r"), .long], help: "Delete key from Keychain.")
+        @Flag(name: .shortAndLong, help: "Delete key from Keychain.")
         var remove: Bool
+        
+        @Flag(name: .shortAndLong, help: "Show key in plain text.")
+        var show: Bool
         
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Set API secret key.")
@@ -20,7 +23,9 @@ struct WeatherCLI: ParsableCommand {
             } else if let key: String = key, !key.isEmpty {
                 URLCredentialStorage.shared.key = key
             }
-            print("KEY")
+            [
+                .label("key", (show ? URLCredentialStorage.shared.key : URLCredentialStorage.shared.key?.redacted) ?? Weather.Forecast.Error.keyNotFound.description)
+            ].print()
         }
     }
     
@@ -31,6 +36,9 @@ struct WeatherCLI: ParsableCommand {
         @Flag(name: .shortAndLong, help: "Reset to default language: \(Weather.Language.auto.rawValue)")
         var auto: Bool
         
+        @Flag(name: .shortAndLong, help: "List available languages.")
+        var list: Bool
+        
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Set forecast language.")
         
@@ -40,7 +48,7 @@ struct WeatherCLI: ParsableCommand {
             } else if let language: Weather.Language = language {
                 UserDefaults.standard.language = language
             }
-            print("LANGUAGE")
+            (UserDefaults.standard.language ?? .auto).print(verbose: list)
         }
     }
     
@@ -51,6 +59,9 @@ struct WeatherCLI: ParsableCommand {
         @Flag(name: .shortAndLong, help: "Reset to default units: \(Weather.Language.auto.rawValue)")
         var auto: Bool
         
+        @Flag(name: .shortAndLong, help: "List available units.")
+        var list: Bool
+        
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Set measurement units.")
         
@@ -60,7 +71,7 @@ struct WeatherCLI: ParsableCommand {
             } else if let units: Weather.Units = units {
                 UserDefaults.standard.units = units
             }
-            print("UNITS")
+            (UserDefaults.standard.units ?? .auto).print(verbose: list)
         }
     }
     
@@ -92,22 +103,22 @@ struct WeatherCLI: ParsableCommand {
             } else if let address: String = address, !address.isEmpty {
                 CLGeocoder.geocode(address: address) { location, error in
                     CFRunLoopStop(runLoop)
-                    guard let location: CLGeocoder.Location = location else {
-                        print(error)
-                        return
+                    if let location: CLGeocoder.Location = location {
+                        UserDefaults.standard.coordinate = location.coordinate
+                        location.print(verbose: true)
+                    } else {
+                        Weather.Forecast.Error.location(error).print()
                     }
-                    UserDefaults.standard.coordinate = location.coordinate
-                    print("LOCATION")
                 }
                 return
             }
             CLGeocoder.geocode(coordinate: UserDefaults.standard.coordinate) { location, error in
                 CFRunLoopStop(runLoop)
-                guard let location: CLGeocoder.Location = location else {
-                    print(error)
-                    return
+                if let location: CLGeocoder.Location = location {
+                    location.print(verbose: true)
+                } else {
+                    Weather.Forecast.Error.location(error).print()
                 }
-                print("LOCATION")
             }
         }
     }
@@ -116,10 +127,7 @@ struct WeatherCLI: ParsableCommand {
         @Option(name: .shortAndLong, help: "Set forecast date in Unix seconds.")
         var date: Date?
         
-        @Option(name: .shortAndLong, help: "Customize forecast.")
-        var blocks: Weather.Forecast.Block?
-        
-        @Flag(name: .shortAndLong, help: "Extend hourly forecast to 7 days.")
+        @Flag(name: .shortAndLong, help: "Show extended forecast.")
         var extend: Bool
 
         // MARK: ParsableCommand
@@ -139,13 +147,22 @@ struct WeatherCLI: ParsableCommand {
                 Forecast.Request.key = URLCredentialStorage.shared.key
                 Forecast.Request.language = UserDefaults.standard.language ?? .auto
                 Forecast.Request.units = UserDefaults.standard.units ?? .auto
-                Forecast.request(Forecast.Request(coordinate: location.coordinate)) { forecast, error in
+                Forecast.request(Forecast.Request(coordinate: location.coordinate, date: self.date)) { forecast, error in
                     CFRunLoopStop(runLoop)
-                    guard let forecast: Forecast = forecast else {
-                        print(error ?? Forecast.Error.networkRequestFailed)
-                        return
+                    if let forecast: Forecast = forecast {
+                        if let date: Date = self.date {
+                            [
+                                .label("time machine", "\(date)")
+                            ].print()
+                        }
+                        [
+                            .discussion(location.description),
+                            .empty
+                        ].print()
+                        forecast.print(verbose: self.extend)
+                    } else {
+                        (error ?? Forecast.Error.networkRequestFailed).print()
                     }
-                    print("FORECAST")
                 }
             }
         }
@@ -164,7 +181,13 @@ struct WeatherCLI: ParsableCommand {
             if open {
                 NSWorkspace.shared.open(Weather.Forecast.attribution.url)
             }
-            print("ABOUT")
+            [
+                .label("about", "(c) toddheasley"),
+                .empty,
+                .discussion(Weather.Forecast.attribution.description),
+                .discussion(Weather.Forecast.attribution.url.absoluteString),
+                .empty
+            ].print()
         }
     }
     

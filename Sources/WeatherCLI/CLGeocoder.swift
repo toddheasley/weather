@@ -2,7 +2,32 @@ import Foundation
 import CoreLocation
 
 extension CLGeocoder {
-    typealias Location = (coordinate: CLLocationCoordinate2D, description: String?)
+    struct Location: CustomStringConvertible, Printable {
+        let coordinate: CLLocationCoordinate2D
+        let address: String?
+        
+        fileprivate init(coordinate: CLLocationCoordinate2D, address: String?) {
+            self.coordinate = coordinate
+            self.address = !(address ?? "").isEmpty ? address : nil
+        }
+        
+        // MARK: CustomStringConvertible
+        var description: String {
+            return address ?? coordinate.description
+        }
+        
+        // MARK: Printable
+        func printableLines(verbose: Bool) -> [PrintableLine] {
+            var lines: [PrintableLine] = []
+            lines.append(.label("location", coordinate.description))
+            if verbose, let address: String = address {
+                lines.append(.empty)
+                lines.append(.discussion(address))
+                lines.append(.empty)
+            }
+            return lines
+        }
+    }
     
     static func geocode(coordinate: CLLocationCoordinate2D? = nil, completion: @escaping (Location?, CLError?) -> Void) {
         guard let coordinate: CLLocationCoordinate2D = coordinate else {
@@ -30,12 +55,16 @@ extension CLGeocoder {
     
     private static let geocoder: CLGeocoder = CLGeocoder()
     
-    private static func handle(coordinate: CLLocationCoordinate2D?, placemarks: [CLPlacemark]?, error: Error?, completion: (Location?, CLError?) -> Void) {
+    private static func handle(coordinate: CLLocationCoordinate2D?, placemarks: [CLPlacemark]?, error: Error?, completion: @escaping (Location?, CLError?) -> Void) {
         guard let coordinate: CLLocationCoordinate2D = coordinate ?? placemarks?.first?.location?.coordinate else {
-            completion(nil, (error as? CLError) ?? CLError(.geocodeFoundNoResult))
+            DispatchQueue.main.async {
+                completion(nil, (error as? CLError) ?? CLError(.geocodeFoundNoResult))
+            }
             return
         }
-        completion((coordinate, placemarks?.first?.address), nil)
+        DispatchQueue.main.async {
+            completion(Location(coordinate: coordinate, address: placemarks?.first?.address), nil)
+        }
     }
 }
 

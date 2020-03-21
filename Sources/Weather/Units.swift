@@ -10,7 +10,16 @@ extension Units: CustomStringConvertible {
     
     // MARK: CustomStringConvertible
     public var description: String {
-        return "Description, desc, de/s"
+        switch self {
+        case .us:
+            return "\(UnitTemperature.fahrenheit.symbol), \(UnitLength.miles.symbol), \(UnitSpeed.milesPerHour.symbol)"
+        case .ca:
+            return "\(UnitTemperature.celsius.symbol), \(UnitLength.kilometers.symbol), \(UnitSpeed.kilometersPerHour.symbol)"
+        case .uk2:
+            return "\(UnitTemperature.celsius.symbol), \(UnitLength.miles.symbol), \(UnitSpeed.milesPerHour.symbol)"
+        case .si:
+            return "\(UnitTemperature.celsius.symbol), \(UnitLength.kilometers.symbol), \(UnitSpeed.metersPerSecond.symbol)"
+        }
     }
 }
 

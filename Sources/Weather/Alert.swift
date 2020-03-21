@@ -24,7 +24,7 @@ extension Alert: Decodable {
         date = DateInterval(start: try container.decode(Date.self, forKey: .time), end: try container.decode(Date.self, forKey: .expires))
         regions = try container.decode([String].self, forKey: .regions)
         title = try container.decode(String.self, forKey: .title)
-        description = try container.decode(String.self, forKey: .description)
+        description = (try container.decode(String.self, forKey: .description)).trimmingCharacters(in: .whitespacesAndNewlines)
         url = try container.decode(URL.self, forKey: .uri)
     }
     
