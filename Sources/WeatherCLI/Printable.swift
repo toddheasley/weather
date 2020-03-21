@@ -15,6 +15,8 @@ extension Printable {
 enum PrintableLine: CustomStringConvertible {
     case label(PrintableLabel, String? = nil)
     case listItem(String, String? = nil, Bool = false)
+    case barGraph(PrintableBarGraph)
+    case lineGraph(String, PrintableLineGraph, String? = nil)
     case discussion(String)
     case empty
     
@@ -25,6 +27,10 @@ enum PrintableLine: CustomStringConvertible {
             return label.description.joined(with: string)
         case .listItem(let string, let string2, let selected):
             return "\(selected ? "\(String.bullet)" : " ") \(string)".merged(with: string2, indented: 26)
+        case .barGraph(let graph):
+            return graph.description
+        case .lineGraph(let string, let graph, let symbol):
+            return "\(symbol ?? " ") \(string.indented(to: 10))".merged(with: graph.description, indented: 14)
         case .discussion(let string):
             return string
         case .empty:
@@ -60,6 +66,52 @@ enum PrintableLabel: ExpressibleByStringLiteral, CustomStringConvertible {
         case .error:
             return "ERROR:"
         }
+    }
+}
+
+struct PrintableBarGraph: CustomStringConvertible {
+    let values: [Int]
+    let scale: Int
+    
+    var isEmpty: Bool {
+        return values.reduce(0, +) < 1
+    }
+    
+    init(values: [Int], scale: Int) {
+        let scale: Int = max(scale, 1)
+        self.values = values.map { value in
+            return min(max(value, 0), scale)
+        }
+        self.scale = scale
+    }
+    
+    // MARK: CustomStringConvertible
+    var description: String {
+        var lines: [String] = []
+        for line in (0..<scale).reversed() {
+            lines.append(values.map { value in
+                return value > line ? "🟦" : "⬜️"
+            }.joined())
+        }
+        return lines.joined(separator: .newLine)
+    }
+}
+
+struct PrintableLineGraph: CustomStringConvertible {
+    let string: String
+    let value: Int
+    
+    init(string: String = "", value: Int = 0) {
+        self.string = string
+        self.value = max(value, 0)
+    }
+    
+    // MARK: CustomStringConvertible
+    var description: String {
+        guard !string.isEmpty else {
+            return ""
+        }
+        return string.indented(value, character: "▫️")
     }
 }
 

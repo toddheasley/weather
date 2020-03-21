@@ -2,11 +2,11 @@ import Foundation
 
 public struct Precipitation {
     public enum Phase: String, CaseIterable, Decodable {
-        case rain, snow, sleet, none
+        case none, rain, snow, sleet
     }
     
     public enum Severity: CaseIterable {
-        case trace, light, medium, heavy, none
+        case none, trace, light, medium, heavy
     }
     
     public let phase: Phase

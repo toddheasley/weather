@@ -2,12 +2,14 @@ import Foundation
 import Weather
 
 extension Icon {
+    var fill: String {
+        return isPrecipitation ? "🟦" : "⬜️"
+    }
+    
     var symbol: String {
         switch self {
-        case .clearDay:
+        case .clearDay, .clearNight:
             return "☀️"
-        case .clearNight:
-            return "✨"
         case .cloudy, .partlyCloudyNight:
             return "☁️"
         case .fog:

@@ -151,8 +151,11 @@ struct WeatherCLI: ParsableCommand {
                     CFRunLoopStop(runLoop)
                     if let forecast: Forecast = forecast {
                         if let date: Date = self.date {
+                            let dateFormatter: DateFormatter = DateFormatter(timeZone: forecast.timeZone)
+                            dateFormatter.dateStyle = .full
+                            dateFormatter.timeStyle = .short
                             [
-                                .label("time machine", "\(date)")
+                                .label("time machine", "\(dateFormatter.string(from: date))")
                             ].print()
                         }
                         [
