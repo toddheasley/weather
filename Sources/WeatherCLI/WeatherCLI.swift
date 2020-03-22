@@ -124,7 +124,7 @@ struct WeatherCLI: ParsableCommand {
     }
     
     struct Forecast: ParsableCommand {
-        @Option(name: .shortAndLong, help: "Set forecast date in Unix seconds.")
+        @Option(name: .shortAndLong, help: "Set Time Machine date in Unix seconds.")
         var date: Date?
         
         @Flag(name: .shortAndLong, help: "Show extended forecast.")
@@ -141,15 +141,15 @@ struct WeatherCLI: ParsableCommand {
             CLGeocoder.geocode(coordinate: UserDefaults.standard.coordinate) { location, error in
                 guard let location: CLGeocoder.Location = location else {
                     CFRunLoopStop(runLoop)
-                    print(Forecast.Error.location(error ?? CLError(CLError.Code.geocodeFoundNoResult)))
+                    print(Weather.Forecast.Error.location(error ?? CLError(CLError.Code.geocodeFoundNoResult)))
                     return
                 }
-                Forecast.Request.key = URLCredentialStorage.shared.key
-                Forecast.Request.language = UserDefaults.standard.language ?? .auto
-                Forecast.Request.units = UserDefaults.standard.units ?? .auto
-                Forecast.request(Forecast.Request(coordinate: location.coordinate, date: self.date)) { forecast, error in
+                Weather.Forecast.Request.key = URLCredentialStorage.shared.key
+                Weather.Forecast.Request.language = UserDefaults.standard.language ?? .auto
+                Weather.Forecast.Request.units = UserDefaults.standard.units ?? .auto
+                Weather.Forecast.request(Weather.Forecast.Request(coordinate: location.coordinate, date: self.date)) { forecast, error in
                     CFRunLoopStop(runLoop)
-                    if let forecast: Forecast = forecast {
+                    if let forecast: Weather.Forecast = forecast {
                         if let date: Date = self.date {
                             let dateFormatter: DateFormatter = DateFormatter(timeZone: forecast.timeZone)
                             dateFormatter.dateStyle = .full
@@ -164,13 +164,11 @@ struct WeatherCLI: ParsableCommand {
                         ].print()
                         forecast.print(verbose: self.extend)
                     } else {
-                        (error ?? Forecast.Error.networkRequestFailed).print()
+                        (error ?? Weather.Forecast.Error.networkRequestFailed).print()
                     }
                 }
             }
         }
-        
-        private typealias Forecast = Weather.Forecast
     }
     
     struct About: ParsableCommand {
@@ -195,7 +193,7 @@ struct WeatherCLI: ParsableCommand {
     }
     
     // MARK: ParsableCommand
-    static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Abstract.",
+    static var configuration: CommandConfiguration = CommandConfiguration(abstract: "View weather forecasts in the shell... for some reason.",
         discussion: "Discussion.",
         subcommands: [
             Key.self,
