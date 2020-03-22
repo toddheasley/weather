@@ -18,13 +18,23 @@ final class ForecastTests: XCTestCase {
             url = try Forecast.Request(coordinate: coordinate, blocks: [.current, .minutes, .hours(extended: true), .flags]).url()
             XCTAssertEqual(url.absoluteString, "https://api.darksky.net/forecast/268a49e46c1b588ede555c8b4cc034f4/43.6617,-70.1961?units=us&lang=en&exclude=daily,alerts&extend=hourly")
         } catch {
-            XCTAssertEqual(error as? Forecast.Error, .urlEncodingFailed)
+            switch error as? Forecast.Error {
+            case .urlEncodingFailed:
+                break
+            default:
+                XCTFail()
+            }
         }
         Forecast.Request.key = nil
         do {
             let _:URL = try Forecast.Request(coordinate: .null).url()
         } catch {
-            XCTAssertEqual(error as? Forecast.Error, .keyNotFound)
+            switch error as? Forecast.Error {
+            case .keyNotFound:
+                break
+            default:
+                XCTFail()
+            }
         }
     }
     
