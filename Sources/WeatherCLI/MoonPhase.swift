@@ -2,7 +2,7 @@ import Foundation
 import Weather
 
 extension MoonPhase {
-    var symbol: String {
+    var symbol: Character {
         switch name {
         case .new:
             return "🌑"

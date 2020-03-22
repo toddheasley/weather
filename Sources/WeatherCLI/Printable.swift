@@ -16,7 +16,7 @@ enum PrintableLine: CustomStringConvertible {
     case label(PrintableLabel, String? = nil)
     case listItem(String, String? = nil, Bool = false)
     case barGraph(PrintableBarGraph)
-    case lineGraph(String, PrintableLineGraph, String? = nil)
+    case lineGraph(String, PrintableLineGraph?, Character? = nil)
     case discussion(String)
     case empty
     
@@ -30,7 +30,7 @@ enum PrintableLine: CustomStringConvertible {
         case .barGraph(let graph):
             return graph.description
         case .lineGraph(let string, let graph, let symbol):
-            return "\(symbol ?? " ") \(string.indented(to: 10))".merged(with: graph.description, indented: 14)
+            return "\(symbol ?? " ") \(string.indented(to: 10))".merged(with: graph?.description, indented: 14)
         case .discussion(let string):
             return string
         case .empty:
@@ -100,18 +100,17 @@ struct PrintableBarGraph: CustomStringConvertible {
 struct PrintableLineGraph: CustomStringConvertible {
     let string: String
     let value: Int
+    let character: Character
     
-    init(string: String = "", value: Int = 0) {
+    init(string: String, value: Int, character: Character? = nil) {
         self.string = string
-        self.value = max(value, 0)
+        self.value = value
+        self.character = character ?? "〰️"
     }
     
     // MARK: CustomStringConvertible
     var description: String {
-        guard !string.isEmpty else {
-            return ""
-        }
-        return string.indented(value, character: "▫️")
+        return " \(string) ".indented(value - ((string.count + 2) / 2), character: character)
     }
 }
 
@@ -125,15 +124,14 @@ extension Array: Printable where Element == PrintableLine {
 
 extension String {
     static let `default`: String = "(default)"
+    static let newLine: String = "\n"
+    static let bullet: String = "•"
     
     var redacted: String {
         return map { _ in
             return "\(Self.bullet)"
         }.joined()
     }
-    
-    fileprivate static let newLine: String = "\n"
-    fileprivate static let bullet: String = "•"
     
     fileprivate func merged(with string: String?, indented spaces: Int, character: Character = " ") -> String {
         guard let string: String = string, !string.isEmpty else {

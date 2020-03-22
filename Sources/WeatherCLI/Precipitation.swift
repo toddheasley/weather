@@ -1,10 +1,6 @@
 import Foundation
 import Weather
 
-extension Precipitation.Phase {
-    
-}
-
 extension Precipitation.Severity {
     static var scale: Int {
         return allCases.count - 1

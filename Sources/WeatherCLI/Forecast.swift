@@ -10,7 +10,7 @@ extension Forecast: Printable {
         lines.append(contentsOf: printableCurrent)
         lines.append(contentsOf: printableAlert)
         lines.append(contentsOf: printableMinutes)
-        if !verbose {
+        if verbose {
             lines.append(contentsOf: printableHours)
             lines.append(contentsOf: printableDays)
         }
@@ -23,9 +23,8 @@ extension Forecast: Printable {
             let summary: String = current?.summary else {
             return []
         }
-        let measurementFormatter: MeasurementFormatter = MeasurementFormatter()
-        measurementFormatter.numberFormatter = NumberFormatter()
-        measurementFormatter.numberFormatter.numberStyle = .none
+        let measurementFormatter: MeasurementFormatter = MeasurementFormatter(numberStyle: .none)
+        measurementFormatter.unitOptions = .providedUnit
         
         var lines: [PrintableLine] = []
         lines.append(.discussion("\(measurementFormatter.string(from: temperature.actual)) (~\(measurementFormatter.string(from: temperature.apparent)))"))
@@ -81,21 +80,20 @@ extension Forecast: Printable {
         dateFormatter.timeStyle = .short
         dateFormatter.dateStyle = .none
         
-        let measurementFormatter: MeasurementFormatter = MeasurementFormatter()
-        measurementFormatter.numberFormatter = NumberFormatter()
-        measurementFormatter.numberFormatter.numberStyle = .none
+        let measurementFormatter: MeasurementFormatter = MeasurementFormatter(numberStyle: .none)
+        measurementFormatter.unitOptions = .providedUnit
         
         var lines: [PrintableLine] = []
         lines.append(.label("next 24 hours"))
         for point in points {
-            let date: String = dateFormatter.string(from: point.date)
-            let fill: String = (point.icon ?? .clearDay).fill
+            let hour: String = dateFormatter.string(from: point.date)
+            let fill: Character = (point.icon ?? .clearDay).fill
             if let temperature: Temperature = point.temperature {
                 let string: String = measurementFormatter.string(from: temperature.actual)
-                let value: Int = 4
-                lines.append(.lineGraph(date, PrintableLineGraph(string: string, value: value), fill))
+                let value: Int = Int(min(max(temperature.actual.converted(to: .fahrenheit).value / 100.0, 0.0), 1.0) * 20.0)
+                lines.append(.lineGraph(hour, PrintableLineGraph(string: string, value: value), fill))
             } else {
-                lines.append(.lineGraph(date, PrintableLineGraph(), fill))
+                lines.append(.lineGraph(hour, nil, fill))
             }
         }
         lines.append(.empty)
@@ -110,14 +108,24 @@ extension Forecast: Printable {
         let dateFormatter: DateFormatter = DateFormatter(timeZone: timeZone)
         dateFormatter.dateFormat = "EEEE"
         
-        let measurementFormatter: MeasurementFormatter = MeasurementFormatter()
-        measurementFormatter.numberFormatter = NumberFormatter()
-        measurementFormatter.numberFormatter.numberStyle = .none
+        let measurementFormatter: MeasurementFormatter = MeasurementFormatter(numberStyle: .none)
+        measurementFormatter.unitOptions = .providedUnit
         
         var lines: [PrintableLine] = []
         lines.append(.label("next 7 days"))
         for point in points {
-            lines.append(.lineGraph(dateFormatter.string(from: point.date), PrintableLineGraph(), point.icon?.symbol))
+            let day: String = dateFormatter.string(from: point.date)
+            if let temperatureInterval: TemperatureInterval = point.temperatureInterval {
+                let string: String = [
+                    measurementFormatter.string(from: temperatureInterval.low.actual),
+                    measurementFormatter.string(from: temperatureInterval.high.actual)
+                ].joined(separator: " \(String.bullet) ")
+                let averageValue: Double = (temperatureInterval.low.actual.converted(to: .fahrenheit).value + temperatureInterval.high.actual.converted(to: .fahrenheit).value) / 2.0
+                let value: Int = Int(min(max(averageValue / 100.0, 0.0), 1.0) * 20.0)
+                lines.append(.lineGraph(day, PrintableLineGraph(string: string, value: max(value, 0) + 1), point.icon?.symbol))
+            } else {
+                lines.append(.lineGraph(day, nil, point.icon?.symbol))
+            }
         }
         lines.append(.empty)
         return lines

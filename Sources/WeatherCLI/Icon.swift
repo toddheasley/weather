@@ -2,11 +2,11 @@ import Foundation
 import Weather
 
 extension Icon {
-    var fill: String {
+    var fill: Character {
         return isPrecipitation ? "🟦" : "⬜️"
     }
     
-    var symbol: String {
+    var symbol: Character {
         switch self {
         case .clearDay, .clearNight:
             return "☀️"
