@@ -54,7 +54,7 @@ import Weather
 
 Forecast.Request.units = .auto // .us
 ```
-All measurements are deserialized to portable [`Measurement`](https://developer.apple.com/documentation/foundation/measurement)  structs with built-in conversion operations and a dedicated formatter.
+All measurements with an associated unit (temperature, speed, distance, pressure) are deserialized to convertible [`Measurement`](https://developer.apple.com/documentation/foundation/measurement)  structs.
 
 ### Forecasts
 
