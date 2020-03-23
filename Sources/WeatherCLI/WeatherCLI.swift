@@ -194,7 +194,7 @@ struct WeatherCLI: ParsableCommand {
     
     // MARK: ParsableCommand
     static var configuration: CommandConfiguration = CommandConfiguration(abstract: "View weather forecasts in the shell... for some reason.",
-        discussion: "Discussion.",
+        discussion: "Requires a (free) Dark Sky API key: \(Weather.Forecast.attribution.url.absoluteString)",
         subcommands: [
             Key.self,
             Language.self,

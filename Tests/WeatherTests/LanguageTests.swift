@@ -3,7 +3,7 @@ import XCTest
 
 final class LanguageTests: XCTestCase {
     func testAuto() {
-        XCTAssertEqual(Language.auto, .en)
+        XCTAssertEqual(Language.auto, Locale.current.language ?? .en)
     }
     
     // MARK: CaseIterable
