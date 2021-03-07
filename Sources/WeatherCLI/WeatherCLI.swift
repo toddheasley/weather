@@ -131,14 +131,22 @@ struct WeatherCLI: ParsableCommand {
         @Flag(name: .shortAndLong, help: "Show extended forecast.")
         var extend: Bool = false
 
+        @Flag(name: .shortAndLong, help: "Include wind forecast.")
+        var wind: Bool = false
+
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Show weather forecast.")
         
         func run() throws {
+            var forecastOptions = ForecastOptions()
+            if extend { forecastOptions.insert(.verbose) }
+            if wind { forecastOptions.insert(.wind) }
+
             let runLoop: CFRunLoop = CFRunLoopGetCurrent()
             defer {
                 CFRunLoopRun()
             }
+            
             CLGeocoder.geocode(coordinate: UserDefaults.standard.coordinate) { location, error in
                 guard let location: CLGeocoder.Location = location else {
                     CFRunLoopStop(runLoop)
@@ -163,7 +171,7 @@ struct WeatherCLI: ParsableCommand {
                             .discussion(location.description),
                             .empty
                         ].print()
-                        forecast.print(verbose: self.extend)
+                        forecast.print(options: forecastOptions)
                     } else {
                         (error ?? Weather.Forecast.Error.networkRequestFailed).print()
                     }
