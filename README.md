@@ -20,7 +20,7 @@ Targets [iOS](https://developer.apple.com/ios)/[iPadOS](https://developer.apple.
 
 ### API Key
 
-`Weather` requires a (free) [Dark Sky API key](https://darksky.net/dev) to function. `Forecast.Request` holds the API key as a static property that can be set once during app launch, and doesn't need to be configured with each request:
+`Weather` requires a (free) [Dark Sky API key](https://darksky.net/dev)* to function. `Forecast.Request` holds the API key as a static property that can be set once during app launch, and doesn't need to be configured with each request:
 
 ```swift
 import Foundation
@@ -28,6 +28,8 @@ import Weather
 
 Forecast.Request.key = "268a49e46c1b588ede555c8b4cc034f4"
 ```
+
+_*Sadly Dark Sky is no longer accepting new signups, though the API is still available if you already have an API key. For now anyway. ☹️_
 
 ### Language
 

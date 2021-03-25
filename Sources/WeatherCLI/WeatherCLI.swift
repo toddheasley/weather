@@ -7,12 +7,13 @@ struct WeatherCLI: ParsableCommand {
     struct Key: ParsableCommand {
         @Argument(help: "Set Dark Sky API key.")
         var key: String?
-        
+
+
         @Flag(name: .shortAndLong, help: "Delete key from Keychain.")
-        var remove: Bool
+        var remove: Bool = false
         
         @Flag(name: .shortAndLong, help: "Show key in plain text.")
-        var show: Bool
+        var show: Bool = false
         
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Set API secret key.")
@@ -34,10 +35,10 @@ struct WeatherCLI: ParsableCommand {
         var language: Weather.Language?
         
         @Flag(name: .shortAndLong, help: "Reset to default language: \(Weather.Language.auto.rawValue)")
-        var auto: Bool
+        var auto: Bool = false
         
         @Flag(name: .shortAndLong, help: "List available languages.")
-        var list: Bool
+        var list: Bool = false
         
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Set forecast language.")
@@ -57,10 +58,10 @@ struct WeatherCLI: ParsableCommand {
         var units: Weather.Units?
         
         @Flag(name: .shortAndLong, help: "Reset to default units: \(Weather.Language.auto.rawValue)")
-        var auto: Bool
+        var auto: Bool = false
         
         @Flag(name: .shortAndLong, help: "List available units.")
-        var list: Bool
+        var list: Bool = false
         
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Set measurement units.")
@@ -83,10 +84,10 @@ struct WeatherCLI: ParsableCommand {
         var coordinate: CLLocationCoordinate2D?
         
         @Flag(name: .shortAndLong, help: "Use current location.")
-        var auto: Bool
+        var auto: Bool = false
         
         @Flag(name: [.customShort("0"), .long], help: .hidden)
-        var null: Bool
+        var null: Bool = false
         
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Set geographic location.")
@@ -128,16 +129,24 @@ struct WeatherCLI: ParsableCommand {
         var date: Date?
         
         @Flag(name: .shortAndLong, help: "Show extended forecast.")
-        var extend: Bool
+        var extend: Bool = false
+
+        @Flag(name: .shortAndLong, help: "Include wind forecast.")
+        var wind: Bool = false
 
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Show weather forecast.")
         
         func run() throws {
+            var forecastOptions = ForecastOptions()
+            if extend { forecastOptions.insert(.verbose) }
+            if wind { forecastOptions.insert(.wind) }
+
             let runLoop: CFRunLoop = CFRunLoopGetCurrent()
             defer {
                 CFRunLoopRun()
             }
+            
             CLGeocoder.geocode(coordinate: UserDefaults.standard.coordinate) { location, error in
                 guard let location: CLGeocoder.Location = location else {
                     CFRunLoopStop(runLoop)
@@ -162,7 +171,7 @@ struct WeatherCLI: ParsableCommand {
                             .discussion(location.description),
                             .empty
                         ].print()
-                        forecast.print(verbose: self.extend)
+                        forecast.print(options: forecastOptions)
                     } else {
                         (error ?? Weather.Forecast.Error.networkRequestFailed).print()
                     }
@@ -173,7 +182,7 @@ struct WeatherCLI: ParsableCommand {
     
     struct About: ParsableCommand {
         @Flag(name: .shortAndLong, help: "Open in browser: \(Weather.Forecast.attribution.url.absoluteString)")
-        var open: Bool
+        var open: Bool = false
         
         // MARK: ParsableCommand
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "\(Weather.Forecast.attribution.description).")

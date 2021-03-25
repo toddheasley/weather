@@ -2,19 +2,50 @@ import Foundation
 import ArgumentParser
 import Weather
 
+struct ForecastOptions: OptionSet {
+    let rawValue: Int
+
+    static let verbose = Self(rawValue: 1 << 0)
+    static let wind    = Self(rawValue: 1 << 1)
+
+    static let all: Self = [.verbose, .wind]
+}
+
 extension Forecast: Printable {
-    
-    // MARK: Printable
-    func printableLines(verbose: Bool) -> [PrintableLine] {
+
+    func print(options: ForecastOptions) {
+        Swift.print(printableLines(options: options).map { line in
+            return line.description
+        }.joined(separator: .newLine))
+    }
+
+    func printableLines(options: ForecastOptions) -> [PrintableLine] {
         var lines: [PrintableLine] = []
         lines.append(contentsOf: printableCurrent)
+
+        if options.contains(.wind) {
+            lines.append(contentsOf: printableWind)
+        }
+
         lines.append(contentsOf: printableAlert)
         lines.append(contentsOf: printableMinutes)
-        if verbose {
+
+        if options.contains(.verbose) {
             lines.append(contentsOf: printableHours)
             lines.append(contentsOf: printableDays)
         }
+
         return lines
+    }
+
+    // MARK: Printable
+    func printableLines(verbose: Bool) -> [PrintableLine] {
+        var forecastOptions: ForecastOptions = []
+        if verbose {
+            forecastOptions.insert(.verbose)
+        }
+
+        return printableLines(options: forecastOptions)
     }
     
     private var printableCurrent: [PrintableLine] {
@@ -31,6 +62,25 @@ extension Forecast: Printable {
         lines.append(.discussion("\(icon.symbol)  \(summary)"))
         lines.append(.empty)
         return lines
+    }
+
+    private var printableWind: [PrintableLine] {
+        guard let wind: Wind = current?.wind else { return [] }
+
+        let speedFormatter: MeasurementFormatter = MeasurementFormatter(numberStyle: .none)
+        speedFormatter.unitOptions = .providedUnit
+        speedFormatter.unitStyle = .medium
+
+        let bearing = wind.bearing.rawValue.uppercased()
+        let speed = speedFormatter.numberFormatter.string(for: wind.speed.value) ?? speedFormatter.string(from: wind.speed)
+        let gust = speedFormatter.string(from: wind.gust)
+
+        let summary = "\(speed) to \(gust) from the \(bearing) \(wind.bearing.symbol)"
+
+        return [
+            .label("wind", summary),
+            .empty
+        ]
     }
     
     private var printableAlert: [PrintableLine] {
