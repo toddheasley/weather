@@ -7,8 +7,7 @@ struct WeatherCLI: ParsableCommand {
     struct Key: ParsableCommand {
         @Argument(help: "Set Dark Sky API key.")
         var key: String?
-
-
+        
         @Flag(name: .shortAndLong, help: "Delete key from Keychain.")
         var remove: Bool = false
         

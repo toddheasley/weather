@@ -14,13 +14,15 @@ Included in the package
 
 ## Requirements
 
-Targets [iOS](https://developer.apple.com/ios)/[iPadOS](https://developer.apple.com/ipad)/[tvOS ](https://developer.apple.com/tvos) 13, as well as [watchOS](https://developer.apple.com/watchos) 6 and [macOS](https://developer.apple.com/macos) 10.15 Catalina. Written in [Swift](https://developer.apple.com/documentation/swift) 5.2 using the [Foundation](https://developer.apple.com/documentation/foundation) and [Core Location](https://developer.apple.com/documentation/corelocation) frameworks and requires [Xcode](https://developer.apple.com/xcode) 11.4 or newer to build. Command-line interface depends on [Swift Argument Parser.](https://github.com/apple/swift-argument-parser)
+Targets [iOS](https://developer.apple.com/ios)/[iPadOS](https://developer.apple.com/ipad)/[tvOS ](https://developer.apple.com/tvos) 13, as well as [watchOS](https://developer.apple.com/watchos) 6 and [macOS](https://developer.apple.com/macos) 10.15 Catalina. Written in [Swift](https://developer.apple.com/documentation/swift) 5.3 using the [Foundation](https://developer.apple.com/documentation/foundation) and [Core Location](https://developer.apple.com/documentation/corelocation) frameworks and requires [Xcode](https://developer.apple.com/xcode) 12 or newer to build. Command-line interface depends on [Swift Argument Parser.](https://github.com/apple/swift-argument-parser)
 
 ## Example Usage
 
 ### API Key
 
-`Weather` requires a (free) [Dark Sky API key](https://darksky.net/dev)* to function. `Forecast.Request` holds the API key as a static property that can be set once during app launch, and doesn't need to be configured with each request:
+`Weather` requires a [Dark Sky API key](https://darksky.net/dev) to function. If you already have a developer account with Dark Sky, the API remains available following [acquisition by Apple.](https://blog.darksky.net) Sign-ups for new accounts are closed.
+
+`Forecast.Request` holds the API key as a static property that can be set once during app launch, and doesn't need to be configured with each request:
 
 ```swift
 import Foundation
@@ -29,11 +31,9 @@ import Weather
 Forecast.Request.key = "268a49e46c1b588ede555c8b4cc034f4"
 ```
 
-_*Sadly Dark Sky is no longer accepting new signups, though the API is still available if you already have an API key. For now anyway. ☹️_
-
 ### Language
 
-Forecasts are available in 50+ languages and growing. Check the [API documentation](https://darksky.net/dev/docs) for a complete, up-to-date list of supported languages.
+Forecasts are available in 50+ languages. Check the [API documentation](https://darksky.net/dev/docs) for a complete, up-to-date list of supported languages.
 
 By default, `Weather` requests forecasts in the current system language, defaulting to English if no matching translation is available. To request forecasts in a specific language, not the current system language, set a specific language code:
 
