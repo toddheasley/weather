@@ -3,8 +3,8 @@ import CoreLocation
 import ArgumentParser
 import Weather
 
-struct WeatherCLI: ParsableCommand {
-    struct Key: ParsableCommand {
+struct CLI: ParsableCommand {
+    struct KeyCommand: ParsableCommand {
         @Argument(help: "Set Dark Sky API key.")
         var key: String?
         
@@ -29,7 +29,7 @@ struct WeatherCLI: ParsableCommand {
         }
     }
     
-    struct Language: ParsableCommand {
+    struct LanguageCommand: ParsableCommand {
         @Argument(help: "Set ISO 639 language code.")
         var language: Weather.Language?
         
@@ -52,7 +52,7 @@ struct WeatherCLI: ParsableCommand {
         }
     }
     
-    struct Units: ParsableCommand {
+    struct UnitsCommand: ParsableCommand {
         @Argument(help: "Select measurement units system.")
         var units: Weather.Units?
         
@@ -75,7 +75,7 @@ struct WeatherCLI: ParsableCommand {
         }
     }
     
-    struct Location: ParsableCommand {
+    struct LocationCommand: ParsableCommand {
         @Argument(help: "Set fixed location by address.")
         var address: String?
         
@@ -123,7 +123,7 @@ struct WeatherCLI: ParsableCommand {
         }
     }
     
-    struct Forecast: ParsableCommand {
+    struct ForecastCommand: ParsableCommand {
         @Option(name: .shortAndLong, help: "Set Time Machine date in Unix seconds.")
         var date: Date?
         
@@ -137,10 +137,14 @@ struct WeatherCLI: ParsableCommand {
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Show weather forecast.")
         
         func run() throws {
-            var forecastOptions = ForecastOptions()
-            if extend { forecastOptions.insert(.verbose) }
-            if wind { forecastOptions.insert(.wind) }
-
+            var options: Forecast.Options = .none
+            if extend {
+                options.insert(.extend)
+            }
+            if wind {
+                options.insert(.wind)
+            }
+            
             let runLoop: CFRunLoop = CFRunLoopGetCurrent()
             defer {
                 CFRunLoopRun()
@@ -170,7 +174,7 @@ struct WeatherCLI: ParsableCommand {
                             .discussion(location.description),
                             .empty
                         ].print()
-                        forecast.print(options: forecastOptions)
+                        forecast.print(options: options)
                     } else {
                         (error ?? Weather.Forecast.Error.networkRequestFailed).print()
                     }
@@ -179,7 +183,7 @@ struct WeatherCLI: ParsableCommand {
         }
     }
     
-    struct About: ParsableCommand {
+    struct AboutCommand: ParsableCommand {
         @Flag(name: .shortAndLong, help: "Open in browser: \(Weather.Forecast.attribution.url.absoluteString)")
         var open: Bool = false
         
@@ -204,13 +208,13 @@ struct WeatherCLI: ParsableCommand {
     static var configuration: CommandConfiguration = CommandConfiguration(abstract: "View weather forecasts in the shell... for some reason.",
         discussion: "Requires a (free) Dark Sky API key: \(Weather.Forecast.attribution.url.absoluteString)",
         subcommands: [
-            Key.self,
-            Language.self,
-            Units.self,
-            Location.self,
-            Forecast.self,
-            About.self
+            KeyCommand.self,
+            LanguageCommand.self,
+            UnitsCommand.self,
+            LocationCommand.self,
+            ForecastCommand.self,
+            AboutCommand.self
         ],
-        defaultSubcommand: Forecast.self
+        defaultSubcommand: ForecastCommand.self
     )
 }

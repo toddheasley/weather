@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.4
 
 import PackageDescription
 
@@ -19,11 +19,11 @@ let package = Package(
         ])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.4.1")
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.4.3")
     ],
     targets: [
         .target(name: "Weather"),
-        .target(name: "WeatherCLI", dependencies: [
+        .executableTarget(name: "WeatherCLI", dependencies: [
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
             "Weather"
         ]),

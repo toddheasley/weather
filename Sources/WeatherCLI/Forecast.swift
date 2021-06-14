@@ -2,50 +2,46 @@ import Foundation
 import ArgumentParser
 import Weather
 
-struct ForecastOptions: OptionSet {
-    let rawValue: Int
-
-    static let verbose = Self(rawValue: 1 << 0)
-    static let wind    = Self(rawValue: 1 << 1)
-
-    static let all: Self = [.verbose, .wind]
-}
-
-extension Forecast: Printable {
-
-    func print(options: ForecastOptions) {
+extension Forecast {
+    struct Options: OptionSet, CaseIterable {
+        let rawValue: Int
+        
+        static let extend = Self(rawValue: 1 << 0)
+        static let wind = Self(rawValue: 1 << 1)
+        static let verbose: Self = [.extend, .wind]
+        static let none: Self = []
+        
+        // MARK: CaseIterable
+        static let allCases: [Self] = [.extend, .wind]
+    }
+    
+    func print(options: Options) {
         Swift.print(printableLines(options: options).map { line in
             return line.description
         }.joined(separator: .newLine))
     }
-
-    func printableLines(options: ForecastOptions) -> [PrintableLine] {
+    
+    private func printableLines(options: Options) -> [PrintableLine] {
         var lines: [PrintableLine] = []
         lines.append(contentsOf: printableCurrent)
-
         if options.contains(.wind) {
             lines.append(contentsOf: printableWind)
         }
-
         lines.append(contentsOf: printableAlert)
         lines.append(contentsOf: printableMinutes)
-
-        if options.contains(.verbose) {
+        if options.contains(.extend) {
             lines.append(contentsOf: printableHours)
             lines.append(contentsOf: printableDays)
         }
-
         return lines
     }
+}
 
+extension Forecast: Printable {
+    
     // MARK: Printable
     func printableLines(verbose: Bool) -> [PrintableLine] {
-        var forecastOptions: ForecastOptions = []
-        if verbose {
-            forecastOptions.insert(.verbose)
-        }
-
-        return printableLines(options: forecastOptions)
+        return printableLines(options: verbose ? .verbose : .none)
     }
     
     private var printableCurrent: [PrintableLine] {
@@ -63,24 +59,23 @@ extension Forecast: Printable {
         lines.append(.empty)
         return lines
     }
-
+    
     private var printableWind: [PrintableLine] {
-        guard let wind: Wind = current?.wind else { return [] }
-
-        let speedFormatter: MeasurementFormatter = MeasurementFormatter(numberStyle: .none)
-        speedFormatter.unitOptions = .providedUnit
-        speedFormatter.unitStyle = .medium
-
-        let bearing = wind.bearing.rawValue.uppercased()
-        let speed = speedFormatter.numberFormatter.string(for: wind.speed.value) ?? speedFormatter.string(from: wind.speed)
-        let gust = speedFormatter.string(from: wind.gust)
-
-        let summary = "\(speed) to \(gust) from the \(bearing) \(wind.bearing.symbol)"
-
-        return [
-            .label("wind", summary),
-            .empty
-        ]
+        guard let wind: Wind = current?.wind else {
+            return []
+        }
+        let measurementFormatter: MeasurementFormatter = MeasurementFormatter(numberStyle: .none)
+        measurementFormatter.unitOptions = .providedUnit
+        measurementFormatter.unitStyle = .medium
+        
+        let speed: String = measurementFormatter.string(from: wind.speed)
+        let gust: String = measurementFormatter.string(from: wind.gust)
+        let bearing: String = "\(wind.bearing.description.uppercased()) \(wind.bearing.symbol)"
+        
+        var lines: [PrintableLine] = []
+        lines.append(.label("wind", "\(speed) to \(gust) from the \(bearing)"))
+        lines.append(.empty)
+        return lines
     }
     
     private var printableAlert: [PrintableLine] {
