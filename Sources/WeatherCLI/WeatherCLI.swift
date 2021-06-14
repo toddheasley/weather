@@ -3,8 +3,8 @@ import CoreLocation
 import ArgumentParser
 import Weather
 
-struct CLI: ParsableCommand {
-    struct KeyCommand: ParsableCommand {
+struct WeatherCLI: ParsableCommand {
+    struct Key: ParsableCommand {
         @Argument(help: "Set Dark Sky API key.")
         var key: String?
         
@@ -29,7 +29,7 @@ struct CLI: ParsableCommand {
         }
     }
     
-    struct LanguageCommand: ParsableCommand {
+    struct Language: ParsableCommand {
         @Argument(help: "Set ISO 639 language code.")
         var language: Weather.Language?
         
@@ -52,7 +52,7 @@ struct CLI: ParsableCommand {
         }
     }
     
-    struct UnitsCommand: ParsableCommand {
+    struct Units: ParsableCommand {
         @Argument(help: "Select measurement units system.")
         var units: Weather.Units?
         
@@ -75,7 +75,7 @@ struct CLI: ParsableCommand {
         }
     }
     
-    struct LocationCommand: ParsableCommand {
+    struct Location: ParsableCommand {
         @Argument(help: "Set fixed location by address.")
         var address: String?
         
@@ -123,7 +123,7 @@ struct CLI: ParsableCommand {
         }
     }
     
-    struct ForecastCommand: ParsableCommand {
+    struct Forecast: ParsableCommand {
         @Option(name: .shortAndLong, help: "Set Time Machine date in Unix seconds.")
         var date: Date?
         
@@ -137,7 +137,7 @@ struct CLI: ParsableCommand {
         static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Show weather forecast.")
         
         func run() throws {
-            var options: Forecast.Options = .none
+            var options: Weather.Forecast.Options = .none
             if extend {
                 options.insert(.extend)
             }
@@ -183,7 +183,7 @@ struct CLI: ParsableCommand {
         }
     }
     
-    struct AboutCommand: ParsableCommand {
+    struct About: ParsableCommand {
         @Flag(name: .shortAndLong, help: "Open in browser: \(Weather.Forecast.attribution.url.absoluteString)")
         var open: Bool = false
         
@@ -208,13 +208,13 @@ struct CLI: ParsableCommand {
     static var configuration: CommandConfiguration = CommandConfiguration(abstract: "View weather forecasts in the shell... for some reason.",
         discussion: "Requires a (free) Dark Sky API key: \(Weather.Forecast.attribution.url.absoluteString)",
         subcommands: [
-            KeyCommand.self,
-            LanguageCommand.self,
-            UnitsCommand.self,
-            LocationCommand.self,
-            ForecastCommand.self,
-            AboutCommand.self
+            Key.self,
+            Language.self,
+            Units.self,
+            Location.self,
+            Forecast.self,
+            About.self
         ],
-        defaultSubcommand: ForecastCommand.self
+        defaultSubcommand: Forecast.self
     )
 }

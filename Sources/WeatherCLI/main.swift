@@ -1,1 +1,1 @@
-CLI.main()
+WeatherCLI.main()
